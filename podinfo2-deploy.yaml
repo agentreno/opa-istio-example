@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podinfo2
+spec:
+  minReadySeconds: 3
+  revisionHistoryLimit: 5
+  progressDeadlineSeconds: 60
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: podinfo2
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9797"
+      labels:
+        app: podinfo2
+        appsystem: podinfo
+    spec:
+      serviceAccountName: podinfo2
+      volumes:
+      - name: opa-config
+        configMap:
+          name: opa-podinfo2-config
+      containers:
+      - name: opa
+        image: openpolicyagent/opa:0.51.0-envoy
+        args:
+        - "run"
+        - "-s"
+        - "--log-level=debug"
+        - "--config-file=/config/config.yaml"
+        ports:
+        - name: grpc
+          containerPort: 9191
+          protocol: TCP
+        volumeMounts:
+        - name: opa-config
+          mountPath: /config
+      - name: podinfod
+        image: ghcr.io/stefanprodan/podinfo:6.3.5
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 9898
+          protocol: TCP
+        - name: http-metrics
+          containerPort: 9797
+          protocol: TCP
+        - name: grpc
+          containerPort: 9999
+          protocol: TCP
+        command:
+        - ./podinfo
+        - --port=9898
+        - --port-metrics=9797
+        - --grpc-port=9999
+        - --grpc-service-name=podinfo
+        - --level=debug
+        - --random-delay=false
+        - --random-error=false
+        env:
+        - name: PODINFO_UI_COLOR
+          value: "#FF0000"
+        livenessProbe:
+          exec:
+            command:
+            - podcli
+            - check
+            - http
+            - localhost:9898/healthz
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - podcli
+            - check
+            - http
+            - localhost:9898/readyz
+          initialDelaySeconds: 5
+          timeoutSeconds: 5

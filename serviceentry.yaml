@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: local-opa-grpc
+  namespace: istio-system
+spec:
+  hosts:
+  - "opa.local"
+  endpoints:
+  - address: "127.0.0.1"
+  ports:
+  - name: "grpc"
+    number: 9191
+    protocol: "GRPC"
+  resolution: "STATIC"

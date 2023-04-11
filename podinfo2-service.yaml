@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: podinfo2
+  name: podinfo2
+spec:
+  ports:
+  - name: 9898-9898
+    port: 9898
+    protocol: TCP
+    targetPort: 9898
+  selector:
+    app: podinfo2
+  type: NodePort
+status:
+  loadBalancer: {}

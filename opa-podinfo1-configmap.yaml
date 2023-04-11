@@ -1,0 +1,15 @@
+apiVersion: v1
+data:
+  config.yaml: |
+    services:
+    - name: s3
+      url: "https://karl-opa-testing.s3.eu-west-1.amazonaws.com"
+    discovery:
+      resource: "discovery.tar.gz"
+      decision: "discovery/config"
+    labels:
+      service_name: "podinfo1"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: opa-podinfo1-config
